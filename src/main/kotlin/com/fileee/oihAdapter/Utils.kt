@@ -1,0 +1,81 @@
+package com.fileee.oihAdapter
+
+import arrow.core.*
+import arrow.effects.IO
+import arrow.effects.async
+import arrow.effects.monad
+import arrow.effects.monadDefer
+import com.fileee.oihAdapter.algebra.Credentials
+import com.fileee.oihAdapter.algebra.UUID
+import com.fileee.oihAdapter.interpreter.*
+import io.elastic.api.EventEmitter
+import org.slf4j.LoggerFactory
+import javax.json.JsonObject
+import javax.json.JsonString
+
+fun parseCredentials(conf: JsonObject): Option<Credentials> {
+  val oauth = conf[OAUTH_KEY]
+  return when (oauth) {
+    is JsonObject -> {
+      val accessTokenJsonVal = oauth[ACCESS_TOKEN]
+      val refreshTokenJsonVal = oauth[REFRESH_TOKEN]
+      val accessToken = when (accessTokenJsonVal) {
+        is JsonString -> accessTokenJsonVal.string.some()
+        else -> none()
+      }
+      val refreshToken = when (refreshTokenJsonVal) {
+        is JsonString -> refreshTokenJsonVal.string.some()
+        else -> none()
+      }
+
+      Option.applicative().map(accessToken, refreshToken) { (token, refresh) ->
+        Credentials(token, refresh)
+      }.fix()
+    }
+    else -> none()
+  }
+}
+
+fun createHeaderFromCredentials(credentials: Credentials): Map<String, String> =
+  mapOf(Pair("Authorization", "Bearer ${credentials.accessToken}"))
+
+fun getId(body: JsonObject): Option<UUID> {
+  val id = body["id"]
+  return when (id) {
+    is JsonString -> id.string.some()
+    else -> none()
+  }
+}
+
+fun defaultContactInterpreter(
+  eventEmitter: EventEmitter
+) =
+  ContactInterpreter(
+    defaultHttpInterpreter(),
+    ParseInterpreter(
+      IO.monadDefer()
+    ),
+    authInterpreter(
+      defaultHttpInterpreter(),
+      ParseInterpreter(
+        IO.monadDefer()
+      ),
+      EmitInterpreter(eventEmitter.some(), IO.monadDefer()),
+      IO.monad()
+    ),
+    IO.async()
+  )
+
+fun defaultAuthInterpreter() =
+  authInterpreter(
+    defaultHttpInterpreter(),
+    ParseInterpreter(IO.monadDefer()),
+    EmitInterpreter(none(), IO.monadDefer()),
+    IO.monad()
+  )
+
+fun defaultHttpInterpreter() =
+  HttpInterpreter(
+    LogInterpreter(LoggerFactory.getLogger(HttpInterpreter::class.java), IO.monadDefer()),
+    IO.async()
+  )
