@@ -43,7 +43,7 @@ Get contacts trigger (`getContacts`) performs a request which fetches all new an
 **Delete contact**
 
 Delete contact action (`deleteContact`) deletes a contact from your fileee contacts. This actions requires a string parameter `id` of the contact to delete and returns nothing if successful.
-> NOTE: Fileee does not really delete the contact. A file `deleted` will be set, which indicates this object is deleted and thus hides this contact.
+> NOTE: Fileee does not really delete the contact. A property `deleted` will be set, which indicates this object is deleted and thus hides this contact.
 
 **Lookup contact**
 
