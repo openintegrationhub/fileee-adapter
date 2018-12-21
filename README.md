@@ -25,7 +25,7 @@ After completing registration you can authorize this component using the OAuth w
 ## Actions and triggers
 ---
 
-The adapter supports the following actions and trigger:
+The adapter supports the following actions and triggers:
 
 ### Triggers
 
@@ -38,22 +38,23 @@ The adapter supports the following actions and trigger:
 - Upsert contact (`upsertContact`)
 
 
-**Get contact**
+**Get contacts**
 
-Get contacts trigger (`getContacts`) performs a request which fetches all new and updated contacts from the users fileee account.
+Get contacts trigger (`getContacts`) performs a request which fetches all new and updated [contacts](https://github.com/openintegrationhub/fileee-adapter/blob/master/schemas/contact.json) from the users fileee account.
 
 **Delete contact**
 
-Delete contact action (`deleteContact`) deletes a contact from your fileee contacts. This actions requires a string parameter `id` of the contact to delete.
-
-> TODO: I think fileee does not delete, only sets deleted to true?
+Delete contact action (`deleteContact`) deletes a contact from your fileee contacts. This actions requires a string parameter `id` of the contact to delete and returns nothing if successful.
+> NOTE: Fileee does not really delete the contact. A file `deleted` will be set, which indicates this object is deleted and thus hides this contact.
 
 **Lookup contact**
 
-Lookup contact action (`lookupContact`) fetches a single contact from your fileee contacts. This action requires a string parameter `id` of the contact to fetch.
+Lookup contact action (`lookupContact`) fetches a single [contact](https://github.com/openintegrationhub/fileee-adapter/blob/master/schemas/contact.json) from your fileee contacts. This action requires a string parameter `id` of the contact to fetch and returns a [contact](https://github.com/openintegrationhub/fileee-adapter/blob/master/schemas/contact.json).
 
 **Upsert contact**
 
-Upsert contact action (`upsertContact`) updates a contact or, if it does not exist, creates a new one. This action requires contact json as a parameter.
-TODO: Add link to schema!
+Upsert contact action (`upsertContact`) updates a [contact](https://github.com/openintegrationhub/fileee-adapter/blob/master/schemas/contact.json) or, if it does not exist, creates a new one. This action takes a fileee [contact](https://github.com/openintegrationhub/fileee-adapter/blob/master/schemas/contact.json) and returns the updated [contact](https://github.com/openintegrationhub/fileee-adapter/blob/master/schemas/contact.json).
 
+## License
+
+Apache-2.0 © [Fileee GmbH](https://www.fileee.com/)

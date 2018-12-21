@@ -1,0 +1,108 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "$id": "https://github.com/openintegrationhub/fileee-adapter/blob/master/schemas/contact.json",
+  "title": "FileeeContact",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Uniquely identifies a contact within fileee and is generally provided by fileee"
+    },
+    "name": {
+      "type": "string"
+    },
+    "logo": {
+      "type": "string",
+      "description": "A URL leading to the contact's logo"
+    },
+    "contactData": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ContactData"
+      }
+    },
+    "addresses": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Address"
+      }
+    },
+    "branding": {
+      "$ref": "#/definitions/BrandingInfo"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "definitions": {
+    "ContactData": {
+      "type": "object",
+      "description": "A generic Key/Value object that can store additional information",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "The type/key of this object"
+        },
+        "value": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string",
+          "description": "Extra information on what this type of contactData is"
+        }
+      },
+      "required": [
+        "type",
+        "value"
+      ]
+    },
+    "Address": {
+      "type": "object",
+      "description": "Address from a contact",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "A unique identifier for an address within a contact"
+        },
+        "street": {
+          "type": "string"
+        },
+        "zipCode": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "countryCode": {
+          "type": "string"
+        }
+      },
+      "required": []
+    },
+    "BrandingInfo": {
+      "type": "object",
+      "description": "Text, logo and header branding colours for a contact",
+      "properties": {
+        "logoBackgroundColorCode": {
+          "type": "string"
+        },
+        "logoTextColorCode": {
+          "type": "string"
+        },
+        "headerBackgroundColorCode": {
+          "type": "string"
+        },
+        "headerTextColorCode": {
+          "type": "string"
+        },
+        "brandLinkColorCode": {
+          "type": "string"
+        },
+        "brandTextColorCode": {
+          "type": "string"
+        }
+      },
+      "required": []
+    }
+  }
+}

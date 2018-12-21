@@ -1,7 +1,7 @@
 {
   "title": "Fileee OIH Adapter",
   "description": "Openintegrationhub adapter for fileee contacts",
-  "docsUrl": "<TODO Link to readme>",
+  "docsUrl": "https://github.com/openintegrationhub/fileee-adapter",
   "url": "https://www.fileee.com/",
   "envVars": {
     "FILEEE_CLIENT_KEY": {
