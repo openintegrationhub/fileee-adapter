@@ -1,5 +1,5 @@
 # Fileee Openintegrationhub adapter
----
+
 
 With fileee one can import documents using either the app or specific import functions from within fileee.
 Importing documents with services such as Dropbox, GoogleDrive and WebDav is also supported.
@@ -14,7 +14,6 @@ This is an adapter that enables third party services to connect to fileee in a s
 It supports a set of triggers (`getContacts`) and a set of actions (`upsertContact`, `deleteContact`, etc).
 
 ## How to use this adapter
----
 
 In order to use, one has to be a registered Fileee user. Signup here on the fileee [homepage](https://my.fileee.com/signup/). 
 
@@ -23,7 +22,6 @@ Also in order to use the oauth workflow the adapter has to be configured with a 
 After completing registration you can authorize this component using the OAuth workflow provided by the platform.
 
 ## Actions and triggers
----
 
 The adapter supports the following actions and triggers:
 
