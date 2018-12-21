@@ -11,7 +11,7 @@ sealed class ParseException : Throwable() {
   class UnhandledException(val exc: Throwable) : ParseException()
 
   override fun toString(): String = when (this) {
-    is FailedToParse -> "Failed to parseAlgebra json $input"
+    is FailedToParse -> "Failed to parse json $input"
     is UnhandledException -> exc.toString()
   }
 
