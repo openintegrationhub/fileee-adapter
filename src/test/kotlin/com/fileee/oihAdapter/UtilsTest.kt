@@ -1,103 +1,77 @@
 package com.fileee.oihAdapter
 
+import arrow.core.Either
 import arrow.core.none
-import arrow.core.some
-import com.fileee.oihAdapter.algebra.Credentials
+import com.fileee.oihAdapter.generators.*
+import io.kotlintest.properties.Gen
+import io.kotlintest.properties.forAll
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
-import io.kotlintest.tables.forAll
-import io.kotlintest.tables.headers
-import io.kotlintest.tables.row
-import io.kotlintest.tables.table
-import javax.json.Json
+import javax.json.JsonNumber
+import javax.json.JsonObject
+import javax.json.JsonString
 
 class ParseCredentialsSpec : StringSpec({
-  // FIXME This is dumb, refractor into several tests
-  "parseCredentials" {
-    table(
-            headers("JsonObject", "expected"),
-            row(
-                    Json.createObjectBuilder()
-                            .add(OAUTH_KEY, Json.createObjectBuilder()
-                                    .add(ACCESS_TOKEN, "MyToken")
-                                    .add(REFRESH_TOKEN, "RefToken")
-                                    .build())
-                            .build(),
-                    Credentials(
-                            accessToken = "MyToken",
-                            refreshToken = "RefToken"
-                    ).some()
-            ),
-            row(
-                    Json.createObjectBuilder().build(),
-                    none()
-            ),
-            row(
-                    Json.createObjectBuilder()
-                            .add(OAUTH_KEY, Json.createObjectBuilder()
-                                    .add(ACCESS_TOKEN, "Token")
-                                    .build())
-                            .build(),
-                    none()
-            ),
-            row(
-                    Json.createObjectBuilder()
-                            .add(OAUTH_KEY, Json.createObjectBuilder()
-                                    .add(REFRESH_TOKEN, "Token")
-                                    .build())
-                            .build(),
-                    none()
-            ),
-            row(
-                    Json.createObjectBuilder()
-                            .add(OAUTH_KEY, Json.createObjectBuilder()
-                                    .add(ACCESS_TOKEN, 1)
-                                    .build())
-                            .build(),
-                    none()
-            ),
-            row(
-                    Json.createObjectBuilder()
-                            .add(OAUTH_KEY, Json.createObjectBuilder()
-                                    .add(REFRESH_TOKEN, false)
-                                    .build())
-                            .build(),
-                    none()
-            )
-    ).forAll { jsonObject, optionalCred ->
-      parseCredentials(jsonObject) shouldBe optionalCred
+  "parseCredentials should work for correct json" {
+    forAll(credJsonGen) { s : Either<JsonObject, JsonObject> ->
+      s.fold({
+        parseCredentials(it).isEmpty()
+      }, {
+        parseCredentials(it).isDefined()
+      })
     }
   }
 })
 
 class CreateHeaderFromCredentialsSpec : StringSpec({
   "createHeaderFromCredentials should create correct header" {
-    val cred = Credentials(
-            accessToken = "MyToken",
-            refreshToken = "RefToken"
-    )
-
-    val headers = createHeaderFromCredentials(cred)
-
-    headers["Authorization"] shouldBe "Bearer MyToken"
+    forAll(credGen) { c ->
+      val headers = createHeaderFromCredentials(c)
+      headers["Authorization"] == "Bearer ${c.accessToken}"
+    }
   }
 })
 
 class GetIdSpec : StringSpec({
   "getId" {
-    table(
-            headers("JsonObject", "Expected"),
-            row(Json.createObjectBuilder().build(), none()),
-            row(
-                    Json.createObjectBuilder().add("id", "MyId").build(),
-                    "MyId".some()
-            ),
-            row(
-                    Json.createObjectBuilder().add("id", false).build(),
-                    none()
-            )
-    ).forAll { obj, expected ->
-      getId(obj) shouldBe expected
+    forAll(jsonIdObjGen) { obj ->
+      obj.fold({ json ->
+        getId(json).fold({ true }, { false })
+      }, { json ->
+        getId(json).fold({ false }, { it == (json["id"] as JsonString).string })
+      })
+    }
+  }
+})
+
+class ParseLastModifiedSpec : StringSpec({
+  "parseLastModified should work" {
+    forAll(jsonLastModifiedGen(CONTACT_TYPE)) { obj ->
+      obj.fold({
+        parseLastModified(CONTACT_TYPE, it).fold({ true }, { false })
+      }, { json ->
+        parseLastModified(CONTACT_TYPE, json).fold({ false }, { time ->
+          json[CONTACT_TYPE]?.let {
+            time == ((it as JsonObject)[MODIFIED_AFTER_KEY] as JsonNumber).longValueExact()
+          } ?: false
+        })
+      })
+    }
+  }
+})
+
+class CreateNewSnapFromOldSpec : StringSpec({
+  "createNewSnapFromOld should create a new object containing correct values" {
+    forAll(Gen.oneOf(
+      lastModifiedGen(CONTACT_TYPE),
+      jsonObjectGen
+    ).option()) { snap ->
+      val result = createNewSnapFromOld(CONTACT_TYPE, snap)
+      (result[CONTACT_TYPE] is JsonObject) &&
+        ((result[CONTACT_TYPE] as JsonObject)[MODIFIED_AFTER_KEY] is JsonNumber) &&
+        snap.fold({ true }, { json ->
+          json.entries.filter { (k,_) -> k != CONTACT_TYPE }.fold(true) { b, (k, v) -> b && result[k] == v }
+        })
     }
   }
 })

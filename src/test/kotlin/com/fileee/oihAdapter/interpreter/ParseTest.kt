@@ -1,46 +1,51 @@
 package com.fileee.oihAdapter.interpreter
 
+import arrow.core.Either
+import arrow.core.Try
 import arrow.core.left
 import arrow.core.right
 import arrow.effects.IO
 import arrow.effects.fix
 import arrow.effects.monadDefer
-import com.fileee.oihAdapter.algebra.ParseException
-import io.kotlintest.shouldBe
+import com.fileee.oihAdapter.generators.jsonArrayGen
+import com.fileee.oihAdapter.generators.jsonObjectGen
+import io.kotlintest.properties.Gen
+import io.kotlintest.properties.forAll
 import io.kotlintest.specs.StringSpec
-import io.kotlintest.tables.forAll
-import io.kotlintest.tables.headers
-import io.kotlintest.tables.row
-import io.kotlintest.tables.table
 import javax.json.Json
 
-class ParseSpec: StringSpec({
-    "parseJsonObject should work as expected" {
-        table(
-                headers("json", "expected"),
-                row("{}", Json.createObjectBuilder().build().right()),
-                row("[]", ParseException.FailedToParse("[]").left()),
-                row("{ \"prop\": 1 }", Json.createObjectBuilder().add("prop", 1).build().right()),
-                row("...", ParseException.FailedToParse("...").left())
-        ).forAll { input, expected ->
-            val parseAlg = ParseInterpreter(IO.monadDefer())
+class ParseSpec : StringSpec({
+  "parseJsonObject should work as expected" {
+    forAll(Gen.oneOf<Either<String, String>>(
+      jsonObjectGen.map { it.toString() }.map { it.right() },
+      Gen.string()
+        .filter { Try { Json.createReader(it.reader()).readObject() }.isFailure() }
+        .map { it.left() }
+    )) { obj ->
+      val parseAlg = ParseInterpreter(IO.monadDefer())
 
-            val result = parseAlg.parseJsonObject(input).fix().unsafeRunSync()
-            result shouldBe expected
-        }
+      obj.fold({ str ->
+        parseAlg.parseJsonObject(str).fix().unsafeRunSync().fold({ true }, { false })
+      }, { str ->
+        parseAlg.parseJsonObject(str).fix().unsafeRunSync().fold({ false }, { it == Json.createReader(str.reader()).readObject() })
+      })
     }
-    "parseJsonArray should work as expected" {
-        table(
-                headers("json", "expected"),
-                row("{}", ParseException.FailedToParse("{}").left()),
-                row("[]", Json.createArrayBuilder().build().right()),
-                row("[1, 2]", Json.createArrayBuilder().add(1).add(2).build().right()),
-                row("...", ParseException.FailedToParse("...").left())
-        ).forAll { input, expected ->
-            val parseAlg = ParseInterpreter(IO.monadDefer())
+  }
 
-            val result = parseAlg.parseJsonArray(input).fix().unsafeRunSync()
-            result shouldBe expected
-        }
+  "parseJsonArray should work as expected" {
+    forAll(Gen.oneOf<Either<String, String>>(
+      jsonArrayGen.map { it.toString() }.map { it.right() },
+      Gen.string()
+        .filter { Try { Json.createReader(it.reader()).readArray() }.isFailure() }
+        .map { it.left() }
+    )) { obj ->
+      val parseAlg = ParseInterpreter(IO.monadDefer())
+
+      obj.fold({ str ->
+        parseAlg.parseJsonArray(str).fix().unsafeRunSync().fold({ true }, { false })
+      }, { str ->
+        parseAlg.parseJsonArray(str).fix().unsafeRunSync().fold({ false }, { it == Json.createReader(str.reader()).readArray() })
+      })
     }
+  }
 })

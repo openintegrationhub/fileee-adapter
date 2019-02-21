@@ -51,6 +51,7 @@ interface ContactAlgebra<F> {
   val M: Monad<F>
   fun getContact(id: UUID, credentials: Credentials): Kind<F, GetContactResult>
   fun getContactList(modifiedAfter: TimeStamp, credentials: Credentials): Kind<F, GetContactListResult>
+  fun getDeletedContactList(modifiedAfter: TimeStamp, credentials: Credentials): Kind<F, GetContactListResult>
   fun createContact(contact: Contact, credentials: Credentials): Kind<F, CreateContactResult>
   fun updateContact(id: UUID, contact: Contact, credentials: Credentials): Kind<F, UpdateContactResult>
   fun deleteContact(id: UUID, credentials: Credentials): Kind<F, DeleteContactResult>

@@ -13,13 +13,14 @@ import io.kotlintest.specs.StringSpec
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import java.lang.IllegalStateException
 import javax.json.JsonObject
 import javax.json.JsonValue
 
-class GetContactsSpec : StringSpec({
-  "getContactsTest" {
+class GetDeletedContactsTest : StringSpec({
+  "getDeletedContactsTest" {
     forAll(
-      lastModifiedGen(CONTACT_TYPE).option(),
+      lastModifiedGen(DELETED_CONTACT_TYPE).option(),
       credJsonGen,
       Gen.oneOf<GetContactListResult>(
         jsonObjectGen.nel().option().map { it.right() },
@@ -29,7 +30,7 @@ class GetContactsSpec : StringSpec({
         )).map { it.left() }
       )
     ) { snapshot, configuration, result ->
-      val instance = GetContacts()
+      val instance = GetDeletedContacts()
       val emitMock = mockk<EmitAlgebra<ForId>>()
 
       every { emitMock.emitError(any()) } returns Id.just(Unit)
@@ -52,7 +53,7 @@ class GetContactsSpec : StringSpec({
         // auth details exist
         val contactMock = mockk<ContactAlgebra<ForId>>()
 
-        every { contactMock.getContactList(any(), any()) } returns Id.just(result)
+        every { contactMock.getDeletedContactList(any(), any()) } returns Id.just(result)
 
         instance.getContactList(
           snapshot, json,
@@ -61,9 +62,9 @@ class GetContactsSpec : StringSpec({
         ).value()
 
         verify {
-          contactMock.getContactList(
+          contactMock.getDeletedContactList(
             // test if timestamp is parsed correctly
-            snapshot.flatMap { parseLastModified(CONTACT_TYPE, it) }
+            snapshot.flatMap { parseLastModified(DELETED_CONTACT_TYPE, it) }
               .getOrElse { 0 },
             // this should never throw as long as parseCredentials works
             parseCredentials(json).getOrElse { throw IllegalStateException() }
@@ -80,7 +81,7 @@ class GetContactsSpec : StringSpec({
           // success, check if everything is emitted
           verify {
             emitMock.emitSnapshot(match {
-              it[CONTACT_TYPE]?.let { (it as JsonObject)[MODIFIED_AFTER_KEY]?.valueType == JsonValue.ValueType.NUMBER } ?: false
+              it[DELETED_CONTACT_TYPE]?.let { (it as JsonObject)[MODIFIED_AFTER_KEY]?.valueType == JsonValue.ValueType.NUMBER } ?: false
             })
           }
           option.fold({ true }, { list ->
@@ -96,5 +97,4 @@ class GetContactsSpec : StringSpec({
       })
     }
   }
-
 })

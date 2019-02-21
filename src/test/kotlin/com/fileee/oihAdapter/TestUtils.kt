@@ -14,9 +14,3 @@ fun logMock(): LogAlgebra<ForId> {
   every { logMock.debug(any()) } returns Id.just(Unit)
   return logMock
 }
-
-val credentialsConfig = Json.createObjectBuilder()
-        .add(OAUTH_KEY, Json.createObjectBuilder()
-                .add(REFRESH_TOKEN, "RefToken")
-                .add(ACCESS_TOKEN, "Token")
-        ).build()

@@ -3,6 +3,9 @@ package com.fileee.oihAdapter.actions
 import arrow.core.*
 import com.fileee.oihAdapter.*
 import com.fileee.oihAdapter.algebra.*
+import com.fileee.oihAdapter.generators.credGen
+import com.fileee.oihAdapter.generators.rand
+import com.fileee.oihAdapter.generators.toJson
 import io.kotlintest.specs.StringSpec
 import io.mockk.every
 import io.mockk.mockk
@@ -46,6 +49,7 @@ class DeleteContactSpec : StringSpec({
     }
   }
 
+
   "deleteContact should emit exceptions from Alg.deleteContact correctly" {
     val delContact = DeleteContact()
     val emitMock = mockk<EmitAlgebra<ForId>>()
@@ -57,6 +61,9 @@ class DeleteContactSpec : StringSpec({
     }
     every { emitMock.emitError(any()) } returns Id.just(Unit)
 
+    val credentials = credGen.rand()
+    val credentialsConfig = toJson(credentials)
+
     delContact.deleteContact(
             Json.createObjectBuilder().add("id", "MyId").build(),
             credentialsConfig,
@@ -65,7 +72,7 @@ class DeleteContactSpec : StringSpec({
 
     verify {
       emitMock.emitError(ContactException.ContactNotFound("MyId"))
-      contactMock.deleteContact("MyId", Credentials("Token", "RefToken"))
+      contactMock.deleteContact("MyId", credentials)
     }
   }
 
@@ -79,6 +86,9 @@ class DeleteContactSpec : StringSpec({
     }
     every { emitMock.emitMessage(any()) } returns Id.just(Unit)
 
+    val credentials = credGen.rand()
+    val credentialsConfig = toJson(credentials)
+
     delContact.deleteContact(
             Json.createObjectBuilder().add("id", "MyId").build(),
             credentialsConfig,
@@ -87,7 +97,7 @@ class DeleteContactSpec : StringSpec({
 
     verify {
       emitMock.emitMessage(Json.createObjectBuilder().build())
-      contactMock.deleteContact("MyId", Credentials("Token", "RefToken"))
+      contactMock.deleteContact("MyId", credentials)
     }
   }
 })

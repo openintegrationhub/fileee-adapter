@@ -3,6 +3,7 @@ package com.fileee.oihAdapter.interpreter
 import arrow.Kind
 import arrow.core.*
 import arrow.data.Nel
+import com.fileee.oihAdapter.DELETED_KEY
 import com.fileee.oihAdapter.PERSONS_API_URL
 import com.fileee.oihAdapter.algebra.*
 import com.fileee.oihAdapter.createHeaderFromCredentials
@@ -309,16 +310,20 @@ class GetContactListSpec : StringSpec({
             httpMock, parseMock, mockk(), Id.monad()
     )
 
+    val notDeletedContact = Json.createObjectBuilder().add(DELETED_KEY, false).build()
+
     every { parseMock.parseJsonArray(any()) } answers {
-      Id.just(Json.createArrayBuilder().add(Json.createObjectBuilder()).build().right())
+      Id.just(
+        Json.createArrayBuilder().add(notDeletedContact).build().right()
+      )
     }
     every { httpMock.httpGet(any(), any()) } answers {
-      Id.just(HttpResult(200, "[{}]").right())
+      Id.just(HttpResult(200, "").right())
     }
 
     val result = contactAlg.getContactList(0L, Credentials("", "")).value()
 
-    result shouldBe beRight(Nel(Json.createObjectBuilder().build()).some())
+    result shouldBe beRight(Nel(notDeletedContact).some())
   }
   "getContactList should setup a correct httpAlgebra and parseAlgebra call for successful execution" {
     val httpMock = mockk<HttpAlgebra<ForId>>()

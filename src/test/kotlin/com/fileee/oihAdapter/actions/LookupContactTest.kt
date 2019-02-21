@@ -4,7 +4,9 @@ import arrow.core.*
 import com.fileee.oihAdapter.algebra.ContactAlgebra
 import com.fileee.oihAdapter.algebra.ContactException
 import com.fileee.oihAdapter.algebra.EmitAlgebra
-import com.fileee.oihAdapter.credentialsConfig
+import com.fileee.oihAdapter.generators.credGen
+import com.fileee.oihAdapter.generators.rand
+import com.fileee.oihAdapter.generators.toJson
 import com.fileee.oihAdapter.logMock
 import io.kotlintest.specs.StringSpec
 import io.mockk.every
@@ -47,6 +49,7 @@ class LookupContactSpec : StringSpec({
       emitMock.emitError(ContactException.AuthException)
     }
   }
+
   "lookupContact should emit errors from getContact" {
     val lookupContact = LookupContact()
     val emitMock = mockk<EmitAlgebra<ForId>>()
@@ -56,6 +59,8 @@ class LookupContactSpec : StringSpec({
       Id.just(ContactException.AuthException.left())
     }
     every { emitMock.emitError(any()) } returns Id.just(Unit)
+
+    val credentialsConfig = toJson(credGen.rand())
 
     lookupContact.getContact(
             Json.createObjectBuilder().add("id", "MyId").build(),
@@ -77,6 +82,8 @@ class LookupContactSpec : StringSpec({
       Id.just(Json.createObjectBuilder().build().right())
     }
     every { emitMock.emitMessage(any()) } returns Id.just(Unit)
+
+    val credentialsConfig = toJson(credGen.rand())
 
     lookupContact.getContact(
             Json.createObjectBuilder().add("id", "MyId").build(),

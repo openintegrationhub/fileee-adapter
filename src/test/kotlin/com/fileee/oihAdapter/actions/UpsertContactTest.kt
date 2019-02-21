@@ -2,7 +2,9 @@ package com.fileee.oihAdapter.actions
 
 import arrow.core.*
 import com.fileee.oihAdapter.algebra.*
-import com.fileee.oihAdapter.credentialsConfig
+import com.fileee.oihAdapter.generators.credGen
+import com.fileee.oihAdapter.generators.rand
+import com.fileee.oihAdapter.generators.toJson
 import com.fileee.oihAdapter.logMock
 import com.fileee.oihAdapter.parseCredentials
 import io.kotlintest.specs.StringSpec
@@ -10,6 +12,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import javax.json.Json
+
 
 class UpsertContactSpec : StringSpec({
   "upsertContact should fail fast if no authAlgebra config" {
@@ -39,6 +42,8 @@ class UpsertContactSpec : StringSpec({
     }
     every { emitMock.emitMessage(any()) } returns Id.just(Unit)
 
+    val credentialsConfig = toJson(credGen.rand())
+
     upsertContact.upsertContact(
             Json.createObjectBuilder().build(),
             credentialsConfig,
@@ -60,6 +65,8 @@ class UpsertContactSpec : StringSpec({
       Id.just(Json.createObjectBuilder().build().right())
     }
     every { emitMock.emitMessage(any()) } returns Id.just(Unit)
+
+    val credentialsConfig = toJson(credGen.rand())
 
     upsertContact.upsertContact(
             Json.createObjectBuilder().add("id", "MyId").build(),
@@ -83,6 +90,8 @@ class UpsertContactSpec : StringSpec({
     }
     every { emitMock.emitError(any()) } returns Id.just(Unit)
 
+    val credentialsConfig = toJson(credGen.rand())
+
     upsertContact.upsertContact(
             Json.createObjectBuilder().build(),
             credentialsConfig,
@@ -104,6 +113,8 @@ class UpsertContactSpec : StringSpec({
       Id.just(ContactException.ContactNotFound("MyId").left())
     }
     every { emitMock.emitError(any()) } returns Id.just(Unit)
+
+    val credentialsConfig = toJson(credGen.rand())
 
     upsertContact.upsertContact(
             Json.createObjectBuilder().add("id", "MyId").build(),

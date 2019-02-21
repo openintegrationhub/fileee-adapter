@@ -3,7 +3,10 @@ package com.fileee.oihAdapter.credentials
 import arrow.core.*
 import com.fileee.oihAdapter.algebra.AuthAlgebra
 import com.fileee.oihAdapter.algebra.VerifyCredentialsException
-import com.fileee.oihAdapter.credentialsConfig
+import com.fileee.oihAdapter.generators.credGen
+import com.fileee.oihAdapter.generators.jsonObjectGen
+import com.fileee.oihAdapter.generators.rand
+import com.fileee.oihAdapter.generators.toJson
 import com.fileee.oihAdapter.logMock
 import com.fileee.oihAdapter.parseCredentials
 import io.elastic.api.InvalidCredentialsException
@@ -20,7 +23,7 @@ class OAuthVerifierSpec : StringSpec({
 
     val result = Try {
       verifier.verifyCredentials(
-              Json.createObjectBuilder().build(),
+              jsonObjectGen.rand(),
               mockk(), logMock(),
               Id.monad()
       ).value()
@@ -29,6 +32,7 @@ class OAuthVerifierSpec : StringSpec({
     result.isFailure() shouldBe true
     result.recover { (it is InvalidCredentialsException) shouldBe true }
   }
+
   "verifyCredentials should throw if credentials were invalid" {
     val verifier = OAuthVerifier()
     val authMock = mockk<AuthAlgebra<ForId>>()
@@ -36,6 +40,8 @@ class OAuthVerifierSpec : StringSpec({
     every { authMock.verifyCredentials(any()) } answers {
       Id.just(VerifyCredentialsException.InvalidCredentials.some())
     }
+
+    val credentialsConfig = toJson(credGen.rand())
 
     val result = Try {
       verifier.verifyCredentials(
@@ -51,6 +57,7 @@ class OAuthVerifierSpec : StringSpec({
     verify {
       authMock.verifyCredentials(parseCredentials(credentialsConfig).get())
     }
+
   }
   "verifyCredentials should not throw on valid credentials" {
     val verifier = OAuthVerifier()
@@ -59,6 +66,8 @@ class OAuthVerifierSpec : StringSpec({
     every { authMock.verifyCredentials(any()) } answers {
       Id.just(none())
     }
+
+    val credentialsConfig = toJson(credGen.rand())
 
     val result = Try {
       verifier.verifyCredentials(

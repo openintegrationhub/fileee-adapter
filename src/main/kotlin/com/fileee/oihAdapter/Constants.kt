@@ -13,3 +13,6 @@ const val REFRESH_TOKEN = "refresh_token"
 const val MODIFIED_AFTER_KEY = "modified_after"
 
 const val CONTACT_TYPE = "contacts"
+const val DELETED_CONTACT_TYPE = "deleted_contacts"
+
+const val DELETED_KEY = "deleted"

@@ -35,6 +35,12 @@
       "type": "polling",
       "title": "getOrganizationsPolling",
       "description": "Get changed and new organizations"
+    },
+    "getDeletedContacts": {
+      "main": "com.fileee.oihAdapter.triggers.GetDeletedContacts",
+      "type": "polling",
+      "title": "getDeletedOrganizationsPolling",
+      "description": "Get deleted organizations"
     }
   },
   "actions": {

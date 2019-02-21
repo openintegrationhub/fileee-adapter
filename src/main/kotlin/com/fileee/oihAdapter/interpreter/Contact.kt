@@ -7,10 +7,12 @@ import arrow.core.right
 import arrow.data.Nel
 import arrow.typeclasses.Monad
 import arrow.typeclasses.binding
+import com.fileee.oihAdapter.DELETED_KEY
 import com.fileee.oihAdapter.PERSONS_API_URL
 import com.fileee.oihAdapter.algebra.*
 import com.fileee.oihAdapter.createHeaderFromCredentials
 import javax.json.JsonObject
+import javax.json.JsonValue
 
 class ContactInterpreter<F>(
   val httpAlgebra: HttpAlgebra<F>,
@@ -89,7 +91,7 @@ class ContactInterpreter<F>(
       cred = credentials
     )
 
-  override fun getContactList(modifiedAfter: TimeStamp, credentials: Credentials): Kind<F, GetContactListResult> =
+  internal fun getContactListAll(modifiedAfter: TimeStamp, credentials: Credentials): Kind<F, GetContactListResult> =
     handleHttpResponse(
       request = {
         httpAlgebra.httpGet(
@@ -109,6 +111,34 @@ class ContactInterpreter<F>(
       },
       cred = credentials
     )
+
+  override fun getContactList(modifiedAfter: TimeStamp, credentials: Credentials): Kind<F, GetContactListResult> =
+    M.run {
+      getContactListAll(modifiedAfter, credentials).map {
+        it.map {
+          it.flatMap { contacts ->
+            Nel.fromList(contacts.all.filter {
+              val deletedJson = it[DELETED_KEY]
+              deletedJson == JsonValue.FALSE
+            })
+          }
+        }
+      }
+    }
+
+  override fun getDeletedContactList(modifiedAfter: TimeStamp, credentials: Credentials): Kind<F, GetContactListResult> =
+    M.run {
+      getContactListAll(modifiedAfter, credentials).map {
+        it.map {
+          it.flatMap { contacts ->
+            Nel.fromList(contacts.all.filter {
+              val deletedJson = it[DELETED_KEY]
+              deletedJson == JsonValue.TRUE
+            })
+          }
+        }
+      }
+    }
 
   override fun createContact(contact: Contact, credentials: Credentials): Kind<F, CreateContactResult> =
     handleHttpResponse(
