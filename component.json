@@ -1,0 +1,63 @@
+{
+  "title": "Fileee OIH Adapter",
+  "description": "Openintegrationhub adapter for fileee contacts",
+  "docsUrl": "https://github.com/openintegrationhub/fileee-adapter",
+  "url": "https://www.fileee.com/",
+  "envVars": {
+    "FILEEE_CLIENT_KEY": {
+      "required": true,
+      "description": "fileee OAuth client key"
+    },
+    "FILEEE_CLIENT_SECRET": {
+      "required": true,
+      "description": "fileee OAuth client secret"
+    }
+  },
+  "credentials": {
+    "verifier" : "com.fileee.oihAdapter.credentials.OAuthVerifier",
+    "fields": {
+      "oauth": {
+        "label": "Authentication",
+        "viewClass": "OAuthFieldView",
+        "required": true
+      }
+    },
+    "oauth2": {
+      "client_id": "{{FILEEE_CLIENT_KEY}}",
+      "client_secret": "{{FILEEE_CLIENT_SECRET}}",
+      "auth_uri": "https://my.fileee.com/oauth/authorize",
+      "token_uri": "https://api.fileee.com/v2/authorization/token"
+    }
+  },
+  "triggers": {
+    "getContacts": {
+      "main": "com.fileee.oihAdapter.triggers.GetContacts",
+      "type": "polling",
+      "title": "getOrganizationsPolling",
+      "description": "Get changed and new organizations"
+    },
+    "getDeletedContacts": {
+      "main": "com.fileee.oihAdapter.triggers.GetDeletedContacts",
+      "type": "polling",
+      "title": "getDeletedOrganizationsPolling",
+      "description": "Get deleted organizations"
+    }
+  },
+  "actions": {
+    "lookupContact": {
+      "main": "com.fileee.oihAdapter.actions.LookupContact",
+      "title": "lookupOrganization",
+      "description": "Lookup organization by id"
+    },
+    "upsertContact": {
+      "main": "com.fileee.oihAdapter.actions.UpsertContact",
+      "title": "upsertOrganization",
+      "descprition": "Create or update an organization"
+    },
+    "deleteContact": {
+      "main": "com.fileee.oihAdapter.actions.DeleteContact",
+      "title": "DeleteOrganization",
+      "description": "Delete an organization"
+    }
+  }
+}

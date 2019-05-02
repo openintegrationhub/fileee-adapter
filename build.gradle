@@ -1,0 +1,84 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        // no kotlin 1.3 because that requires a higher gradle version
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.2.60"
+        // required because gradle version is below 4.6 (4.6 afaik added native support for junit platform)
+        classpath "org.junit.platform:junit-platform-gradle-plugin:1.2.0"
+    }
+}
+
+// ugly way of applying plugins, required afaik because of the way elasticio runs gradle and ofc because of the old gradle version
+apply plugin: org.junit.platform.gradle.plugin.JUnitPlatformPlugin
+apply plugin: org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'java-library-distribution'
+
+group = 'com.fileee.oihAdapter'
+version = '1.0.0'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    jcenter()
+}
+// arrow is at 0.8.1 and going, adding a ton of amazing features but requiring kotlin 1.3 :/
+def arrow_version = "0.7.3"
+dependencies {
+    // kotlin
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
+    // elasticio/oih jvm
+    compile "io.elastic:sailor-jvm:2.1.0"
+
+    // http support
+    compile 'com.github.kittinunf.fuel:fuel:1.15.0'
+
+    // arrow for fp
+    compile "io.arrow-kt:arrow-core:$arrow_version"
+    compile "io.arrow-kt:arrow-syntax:$arrow_version"
+    compile "io.arrow-kt:arrow-typeclasses:$arrow_version"
+    compile "io.arrow-kt:arrow-data:$arrow_version"
+    compile "io.arrow-kt:arrow-instances-core:$arrow_version"
+    compile "io.arrow-kt:arrow-instances-data:$arrow_version"
+    compile "io.arrow-kt:arrow-effects:$arrow_version"
+
+    // kotlintest, has some weird behaviour because of the old gradle version, but it runs tests fine
+    testCompile 'io.kotlintest:kotlintest-runner-junit5:3.1.10'
+    // arrow matchers to ease testing a bit
+    testCompile 'io.kotlintest:kotlintest-assertions-arrow:3.1.9'
+    // by far the easiest way to mock things in kotlin
+    testCompile "io.mockk:mockk:1.8.12"
+}
+
+// like come on there is gradle 5.0 out now and the standart on elasticio is 2.0? The latest supported version I could find was 2.6
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.6'
+}
+
+uploadArchives {
+    repositories {
+        mavenLocal()
+    }
+}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
+}
